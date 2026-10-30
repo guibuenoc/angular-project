@@ -1,55 +1,209 @@
-<div class="container">
-  <header>
-    <h1>📝 Bloco de Notas</h1>
-    <p>Organize suas anotações de forma simples.</p>
-  </header>
+<div class="app-shell">
+  <aside class="sidebar" aria-label="Navegação principal">
+    <a class="brand" href="#inicio" aria-label="Organiza, início">
+      <span class="brand-mark" aria-hidden="true">o</span>
+      <span>organiza<span class="brand-dot">.</span></span>
+    </a>
 
-  <div class="top-bar">
-    <input
-      type="text"
-      placeholder="Pesquisar notas..."
-      [(ngModel)]="pesquisa"
-    />
+    <p class="sidebar-label">SEU ESPAÇO</p>
+    <a class="nav-link" href="#inicio" aria-current="page">
+      <span class="nav-icon" aria-hidden="true">◫</span>
+      Visão geral
+    </a>
+    <a class="nav-link" href="#tarefas">
+      <span class="nav-icon" aria-hidden="true">✓</span>
+      Minhas tarefas
+      <span class="nav-count">{{ remainingCount() }}</span>
+    </a>
 
-    <button (click)="novaNota()">+ Nova Nota</button>
-  </div>
-
-  <div class="nota-form" *ngIf="editando">
-    <input
-      type="text"
-      placeholder="Título da nota"
-      [(ngModel)]="titulo"
-    />
-
-    <textarea
-      placeholder="Digite sua anotação..."
-      [(ngModel)]="conteudo"
-    ></textarea>
-
-    <div class="botoes">
-      <button class="salvar" (click)="salvarNota()">Salvar</button>
-      <button class="cancelar" (click)="cancelar()">Cancelar</button>
+    <div class="sidebar-tip">
+      <span class="tip-sparkle" aria-hidden="true">✳</span>
+      <p class="tip-title">Um passo de cada vez</p>
+      <p>Pequenos avanços também levam você longe.</p>
     </div>
-  </div>
 
-  <div class="notas">
-    <div
-      class="nota"
-      *ngFor="let nota of notasFiltradas; let i = index"
-    >
-      <h2>{{ nota.titulo }}</h2>
+    <div class="sidebar-footer">
+      <span class="avatar" aria-hidden="true">G</span>
+      <span class="profile-copy">
+        <strong>Meu espaço</strong>
+        <span>Organização pessoal</span>
+      </span>
+    </div>
+  </aside>
 
-      <p>{{ nota.conteudo }}</p>
+  <main class="main-content" id="inicio">
+    <header class="topbar">
+      <p class="breadcrumb">Meu espaço <span aria-hidden="true">/</span> Visão geral</p>
+      <span class="today-label">SEU DIA, NO SEU RITMO</span>
+    </header>
 
-      <div class="acoes">
-        <button (click)="editarNota(i)">Editar</button>
-        <button class="excluir" (click)="excluirNota(i)">Excluir</button>
+    <section class="welcome" aria-labelledby="welcome-title">
+      <div>
+        <p class="eyebrow">OLÁ, QUE BOM TER VOCÊ AQUI</p>
+        <h1 id="welcome-title">Vamos deixar o dia<br />mais leve?</h1>
+        <p class="welcome-copy">
+          Organize suas prioridades e acompanhe cada conquista.
+        </p>
       </div>
-    </div>
+      <div class="welcome-art" aria-hidden="true">
+        <span class="art-sun"></span>
+        <span class="art-leaf art-leaf-one"></span>
+        <span class="art-leaf art-leaf-two"></span>
+        <span class="art-stem"></span>
+      </div>
+    </section>
 
-    <div class="vazio" *ngIf="notasFiltradas.length === 0">
-      <span>📭</span>
-      <p>Nenhuma nota encontrada.</p>
-    </div>
-  </div>
+    <section class="stats" aria-label="Resumo das tarefas">
+      <article class="stat-card">
+        <span class="stat-icon total-icon" aria-hidden="true">▤</span>
+        <div>
+          <p>Total de tarefas</p>
+          <strong>{{ taskCount() }}</strong>
+        </div>
+      </article>
+      <article class="stat-card">
+        <span class="stat-icon open-icon" aria-hidden="true">◷</span>
+        <div>
+          <p>Em andamento</p>
+          <strong>{{ remainingCount() }}</strong>
+        </div>
+      </article>
+      <article class="stat-card">
+        <span class="stat-icon done-icon" aria-hidden="true">✓</span>
+        <div>
+          <p>Concluídas</p>
+          <strong>{{ completedCount() }}</strong>
+        </div>
+      </article>
+    </section>
+
+    <section class="tasks-section" id="tarefas" aria-labelledby="tasks-title">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">MANTENHA O FOCO</p>
+          <h2 id="tasks-title">Suas tarefas</h2>
+        </div>
+        @if (completedCount() > 0) {
+          <button class="clear-button" type="button" (click)="clearCompleted()">
+            Limpar concluídas
+          </button>
+        }
+      </div>
+
+      @if (storageError(); as error) {
+        <p class="storage-error" role="alert">{{ error }}</p>
+      }
+
+      <form class="add-form" (submit)="addTask($event, taskInput)">
+        <label class="sr-only" for="task-title">Nova tarefa</label>
+        <span class="input-plus" aria-hidden="true">＋</span>
+        <input
+          #taskInput
+          id="task-title"
+          type="text"
+          maxlength="120"
+          placeholder="Qual é a próxima tarefa?"
+          autocomplete="off"
+        />
+        <button class="add-button" type="submit">
+          <span aria-hidden="true">＋</span>
+          Adicionar
+        </button>
+      </form>
+      <p class="form-hint">Dica: pressione Enter para adicionar rapidamente.</p>
+
+      <div class="task-toolbar">
+        <div class="filters" role="group" aria-label="Filtrar tarefas">
+          @for (item of filters; track item.value) {
+            <button
+              class="filter-button"
+              [class.selected]="filter() === item.value"
+              [attr.aria-pressed]="filter() === item.value"
+              type="button"
+              (click)="filter.set(item.value)"
+            >
+              {{ item.label }}
+              @if (item.value === 'all') {
+                <span>{{ taskCount() }}</span>
+              }
+            </button>
+          }
+        </div>
+        <span class="task-summary">
+          {{ remainingCount() }}
+          {{ remainingCount() === 1 ? 'pendente' : 'pendentes' }}
+        </span>
+      </div>
+
+      @if (filteredTasks().length > 0) {
+        <ul class="task-list">
+          @for (task of filteredTasks(); track task.id) {
+            <li class="task-row" [class.task-done]="task.completed">
+              <label class="task-check">
+                <input
+                  type="checkbox"
+                  [checked]="task.completed"
+                  [attr.aria-label]="
+                    (task.completed ? 'Reabrir tarefa: ' : 'Concluir tarefa: ') +
+                    task.title
+                  "
+                  (change)="toggleTask(task.id)"
+                />
+                <span class="checkmark" aria-hidden="true"></span>
+              </label>
+              <span class="task-title">{{ task.title }}</span>
+              <button
+                class="remove-button"
+                type="button"
+                [attr.aria-label]="'Remover tarefa: ' + task.title"
+                (click)="removeTask(task.id)"
+              >
+                <span aria-hidden="true">×</span>
+              </button>
+            </li>
+          }
+        </ul>
+      } @else if (taskCount() === 0) {
+        <div class="empty-state">
+          <span class="empty-icon" aria-hidden="true">✳</span>
+          <h3>Um começo tranquilo</h3>
+          <p>Adicione sua primeira tarefa e tire uma ideia do papel.</p>
+        </div>
+      } @else {
+        <div class="empty-state compact-empty">
+          <h3>Nada por aqui</h3>
+          <p>Não há tarefas nesta categoria por enquanto.</p>
+        </div>
+      }
+    </section>
+
+    <section class="progress-card" aria-labelledby="progress-title">
+      <div class="progress-copy">
+        <span class="progress-icon" aria-hidden="true">↗</span>
+        <div>
+          <h2 id="progress-title">Seu progresso</h2>
+          <p>
+            @if (taskCount() === 0) {
+              Suas conquistas começam com o primeiro passo.
+            } @else {
+              Você concluiu {{ completedCount() }} de {{ taskCount() }} tarefas.
+            }
+          </p>
+        </div>
+      </div>
+      <div class="progress-value">
+        <strong>{{ progress() }}%</strong>
+        <div
+          class="progress-track"
+          role="progressbar"
+          aria-label="Progresso das tarefas"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          [attr.aria-valuenow]="progress()"
+        >
+          <span [style.width.%]="progress()"></span>
+        </div>
+      </div>
+    </section>
+  </main>
 </div>
