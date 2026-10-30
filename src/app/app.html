@@ -1,0 +1,55 @@
+<div class="container">
+  <header>
+    <h1>📝 Bloco de Notas</h1>
+    <p>Organize suas anotações de forma simples.</p>
+  </header>
+
+  <div class="top-bar">
+    <input
+      type="text"
+      placeholder="Pesquisar notas..."
+      [(ngModel)]="pesquisa"
+    />
+
+    <button (click)="novaNota()">+ Nova Nota</button>
+  </div>
+
+  <div class="nota-form" *ngIf="editando">
+    <input
+      type="text"
+      placeholder="Título da nota"
+      [(ngModel)]="titulo"
+    />
+
+    <textarea
+      placeholder="Digite sua anotação..."
+      [(ngModel)]="conteudo"
+    ></textarea>
+
+    <div class="botoes">
+      <button class="salvar" (click)="salvarNota()">Salvar</button>
+      <button class="cancelar" (click)="cancelar()">Cancelar</button>
+    </div>
+  </div>
+
+  <div class="notas">
+    <div
+      class="nota"
+      *ngFor="let nota of notasFiltradas; let i = index"
+    >
+      <h2>{{ nota.titulo }}</h2>
+
+      <p>{{ nota.conteudo }}</p>
+
+      <div class="acoes">
+        <button (click)="editarNota(i)">Editar</button>
+        <button class="excluir" (click)="excluirNota(i)">Excluir</button>
+      </div>
+    </div>
+
+    <div class="vazio" *ngIf="notasFiltradas.length === 0">
+      <span>📭</span>
+      <p>Nenhuma nota encontrada.</p>
+    </div>
+  </div>
+</div>
